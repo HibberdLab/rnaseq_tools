@@ -59,7 +59,21 @@ end
 puts "#{opts.memory}GB"
 
 n = opts.buckets
-x = opts.memory/opts.buckets*1e9
+x = (opts.memory/opts.buckets*1e9).to_i
 
-puts "Number of buckets to use is #{n}"
-puts "Size of each bucket is #{x.to_i}"
+#puts "Number of buckets to use is #{n}"
+#puts "Size of each bucket is #{x.to_i}"
+
+first = true
+filelist.each do |file|
+  if first
+    cmd = "#{opts.script} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
+    `#{cmd}`
+    first = false
+  else
+    cmd = "#{opts.script} -k #{opts.kmer} -N #{n} -x #{x} --load table.kh --savehash table2.kh #{file}"
+    `#{cmd}`
+    `mv table2.kh table.kh`
+  end
+  
+end
