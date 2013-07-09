@@ -23,6 +23,7 @@ opts = Trollop::options do
   opt :input, "A file of fastq files, 1 per line", :type => String
   opt :files, "A list of colon separated input fastq files", :type => String
   opt :script, "Specify the location of the khmer normalize-by-median.py script if it is not in your PATH", :default => "normalize-by-median.py", :type => String
+  opt :paired, "If the input fastq files are interleaved paired reads"
   opt :memory, "Maximum amount of memory to be used by khmer in gigabytes (default:4)", :default => 4.0, :type => :float
   opt :kmer, "K value to use in khmer (default:21)", :default => 21, :type => :int
   opt :buckets, "Number of buckets (default:4)", :default => 4, :type => :int
@@ -64,16 +65,19 @@ x = (opts.memory/opts.buckets*1e9).to_i
 #puts "Number of buckets to use is #{n}"
 #puts "Size of each bucket is #{x.to_i}"
 
+pair=""
+if (opts.paired)
+  pair = "-p"
+end
 first = true
 filelist.each do |file|
   if first
-    cmd = "#{opts.script} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
+    cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
     `#{cmd}`
     first = false
   else
-    cmd = "#{opts.script} -k #{opts.kmer} -N #{n} -x #{x} --load table.kh --savehash table2.kh #{file}"
+    cmd = "#{opts.script} -p -k #{opts.kmer} -N #{n} -x #{x} --load table.kh --savehash table2.kh #{file}"
     `#{cmd}`
     `mv table2.kh table.kh`
   end
-  
 end
