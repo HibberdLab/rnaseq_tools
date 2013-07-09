@@ -16,7 +16,6 @@
 
 require 'rubygems'
 require 'trollop'
-require 'bio'
 
 opts = Trollop::options do
   version "v0.0.1a"
@@ -24,10 +23,17 @@ opts = Trollop::options do
   opt :files, "A list of colon separated input fastq files", :type => String
   opt :script, "Specify the location of the khmer normalize-by-median.py script if it is not in your PATH", :default => "normalize-by-median.py", :type => String
   opt :paired, "If the input fastq files are interleaved paired reads"
+  opt :interleave, "Do the input fastq files need to be interleaved"
   opt :memory, "Maximum amount of memory to be used by khmer in gigabytes (default:4)", :default => 4.0, :type => :float
   opt :kmer, "K value to use in khmer (default:21)", :default => 21, :type => :int
   opt :buckets, "Number of buckets (default:4)", :default => 4, :type => :int
 end
+
+# interleave:
+# paste $1 $2 | paste - - - - | awk -v OFS="\n" '{print($1,$3,$5,$7,$2,$4,$6,$8)}'
+
+# deinterleave:
+# paste - - - - - - - -  | tee >(cut -f 1-4 | tr "\t" "\n" > $1) | cut -f 5-8 | tr "\t" "\n" > $2
 
 filelist=[]
 # check inputs
@@ -50,33 +56,37 @@ elsif opts.files
   end
 end
 
-# normalize-by-median.py -p -k 20 -N 12 -x 64e9 --savehash table.kh filename.fq
-# normalize-by-median.py -p -k 20 -N 12 -x 64e9 --loadhash table.kh --savehash table2.kh filename2.fq
-
-#For normalize-by-median, khmer uses one byte per hash entry, 
-#  so: if you had 16 GB of available RAM, you should specify 
-#  something like -N 4 -x 4e9, which multiplies out to about 16 GB.
-
-puts "#{opts.memory}GB"
+if (opts.interleave)
+  newfilelist=[]
+  #check there are an even number of files in the list
+  if filelist.length % 2 == 1
+    abort "There needs to be an even number of fastq files in the list if you want to interleave them"
+  end
+  (0..filelist.length-1).step(2) do |i|
+    cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print($1,$3,$5,$7,$2,$4,$6,$8)}\' > #{filelist[i]}.in"
+    `#{cmd}`
+    newfilelist << "#{filelist[i]}.in"
+  end
+  filelist = newfilelist
+end
 
 n = opts.buckets
 x = (opts.memory/opts.buckets*1e9).to_i
 
-#puts "Number of buckets to use is #{n}"
-#puts "Size of each bucket is #{x.to_i}"
-
 pair=""
 if (opts.paired)
   pair = "-p"
+  puts "setting pair to true #{pair}"
 end
 first = true
 filelist.each do |file|
+  puts file
   if first
     cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
     `#{cmd}`
     first = false
   else
-    cmd = "#{opts.script} -p -k #{opts.kmer} -N #{n} -x #{x} --load table.kh --savehash table2.kh #{file}"
+    cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --load table.kh --savehash table2.kh #{file}"
     `#{cmd}`
     `mv table2.kh table.kh`
   end
