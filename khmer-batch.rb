@@ -29,12 +29,6 @@ opts = Trollop::options do
   opt :buckets, "Number of buckets (default:4)", :default => 4, :type => :int
 end
 
-# interleave:
-# paste $1 $2 | paste - - - - | awk -v OFS="\n" '{print($1,$3,$5,$7,$2,$4,$6,$8)}'
-
-# deinterleave:
-# paste - - - - - - - -  | tee >(cut -f 1-4 | tr "\t" "\n" > $1) | cut -f 5-8 | tr "\t" "\n" > $2
-
 filelist=[]
 # check inputs
 if (opts.input and opts.files)
@@ -63,7 +57,7 @@ if (opts.interleave)
     abort "There needs to be an even number of fastq files in the list if you want to interleave them"
   end
   (0..filelist.length-1).step(2) do |i|
-    cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print($1,$3,$5,$7,$2,$4,$6,$8)}\' > #{filelist[i]}.in"
+    cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print($1\"/1\",$3,$5,$7,$2\"/2\",$4,$6,$8)}\' > #{filelist[i]}.in"
     `#{cmd}`
     newfilelist << "#{filelist[i]}.in"
   end
@@ -76,7 +70,7 @@ x = (opts.memory/opts.buckets*1e9).to_i
 pair=""
 if (opts.paired)
   pair = "-p"
-  puts "setting pair to true #{pair}"
+  #puts "setting pair to true #{pair}"
 end
 first = true
 filelist.each do |file|
