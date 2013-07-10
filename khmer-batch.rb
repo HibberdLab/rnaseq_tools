@@ -57,7 +57,8 @@ if (opts.interleave)
     abort "There needs to be an even number of fastq files in the list if you want to interleave them"
   end
   (0..filelist.length-1).step(2) do |i|
-    cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print($1\"/1\",$3,$5,$7,$2\"/2\",$4,$6,$8)}\' > #{filelist[i]}.in"
+    cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print(\"@read\"NR\":1\",$3,$5,$7,\"@read\"NR\":2\",$4,$6,$8)}\' > #{filelist[i]}.in"
+    #paste test_1.fq test_2.fq | paste - - - - | awk -v FS="\t" -v OFS="\n" '{print("@read"NR":1", $3, $5, $7, "@read"NR":2", $4, $6, $8)}'
     `#{cmd}`
     newfilelist << "#{filelist[i]}.in"
   end
