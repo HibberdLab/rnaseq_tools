@@ -37,8 +37,10 @@ elsif opts.input
   if !File.exists?(opts.input)
     abort "Can't find file \"#{opts.input}\""
   end
-  File.open(opts.files, "r").each_line do |line|
-    filelist << line.chomp
+  File.open(opts.input, "r").each_line do |line|
+    if !line.nil?
+      filelist << line.chomp
+    end
   end
 elsif opts.files
   filelist = opts.files.split(":")
