@@ -24,6 +24,7 @@ opts = Trollop::options do
   opt :script, "Specify the location of the khmer normalize-by-median.py script if it is not in your PATH", :default => "normalize-by-median.py", :type => String
   opt :paired, "If the input fastq files are interleaved paired reads"
   opt :interleave, "Do the input fastq files need to be interleaved"
+  opt :continue, "Continue a previous run using existing table.kh"
   opt :memory, "Maximum amount of memory to be used by khmer in gigabytes (default:4)", :default => 4.0, :type => :float
   opt :kmer, "K value to use in khmer (default:21)", :default => 21, :type => :int
   opt :buckets, "Number of buckets (default:4)", :default => 4, :type => :int
@@ -67,6 +68,15 @@ if (opts.interleave)
   filelist = newfilelist
 end
 
+first = true
+if (opts.continue)
+  if !File.exists?(opts.continue)
+    first = false
+  else
+    abort "Can't find \"table.kh\" file"
+  end
+end
+
 n = opts.buckets
 x = (opts.memory/opts.buckets*1e9).to_i
 
@@ -75,7 +85,6 @@ if (opts.paired)
   pair = "-p"
   #puts "setting pair to true #{pair}"
 end
-first = true
 filelist.each do |file|
   puts file
   if first
