@@ -25,9 +25,9 @@ opts = Trollop::options do
   opt :paired, "If the input fastq files are interleaved paired reads"
   opt :interleave, "Do the input fastq files need to be interleaved"
   opt :continue, "Continue a previous run using existing table.kh"
-  opt :memory, "Maximum amount of memory to be used by khmer in gigabytes (default:4)", :default => 4.0, :type => :float
-  opt :kmer, "K value to use in khmer (default:21)", :default => 21, :type => :int
-  opt :buckets, "Number of buckets (default:4)", :default => 4, :type => :int
+  opt :memory, "Maximum amount of memory to be used by khmer in gigabytes", :default => 4.0, :type => :float
+  opt :kmer, "K value to use in khmer", :default => 21, :type => :int
+  opt :buckets, "Number of buckets", :default => 4, :type => :int
 end
 
 filelist=[]
@@ -70,11 +70,7 @@ end
 
 first = true
 if (opts.continue)
-  if !File.exists?(opts.continue)
-    first = false
-  else
-    abort "Can't find \"table.kh\" file"
-  end
+  first = false
 end
 
 n = opts.buckets
