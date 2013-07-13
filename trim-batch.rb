@@ -30,13 +30,15 @@ EOS
   opt :singlefile, "A file of single-end FASTQ file paths, 1 per line", :type => String
   opt :single, "A list of colon separated single-end input FASTQ file paths", :type => String
   opt :jar, "Location of the trimmomatic jar file", :required => true, :type => String
-  opt :adapters, "Path to adapter FASTA file. If provided, adapters will be trimmed"
+  opt :adapters, "Path to adapter FASTA file. If provided, adapters will be trimmed", :type => String
   opt :leading, "Minimum quality required to keep a leading base", :default => 15, :type => Integer
   opt :trailing, "Minimum quality required to keep a trailing base", :default => 15, :type => Integer
   opt :windowsize, "Size of sliding window across which to average quality", :default => 4, :type => Integer
   opt :quality, "Quality cutoff to use in sliding window trimming", :default => 15, :type => Integer
   opt :minlen, "Minimum length of reads (any shorter than this after trimming are discarded)", :default => 60, :type => Integer
 end
+
+t0 = Time.now
 
 pairedlist, singlelist = [], []
 
@@ -96,6 +98,8 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = cmd.gsub(/INFILER/, infiler)
   cmd = cmd.gsub(/OUTFILEF/, "#{TRIMPREFIX}#{infilef}")
   cmd = cmd.gsub(/OUTFILER/, "#{TRIMPREFIX}#{infiler}")
+  puts "trimming #{infilef} and #{infiler}"
+  puts cmd
   `#{cmd}`
 end
 
@@ -103,5 +107,9 @@ singlelist.each do |infile|
   cmd = singlecmd
   cmd = cmd.gsub(/INFILE/, infile)
   cmd = cmd.gsub(/OUTFILE/, "#{TRIMPREFIX}#{infile}")
+  puts "trimming #{infile}"
+  puts cmd
   `#{cmd}`
 end
+
+puts "Done! Trimmed #{pairedlist.length + singlelist.length} files in #{Time.now - t0} seconds"
