@@ -10,3 +10,5 @@ Miscellaneous tools for analysis of RNA-seq and transcriptomic data.
 
 
 **All files released under the permissive MIT 'Expat' license unless otherwise specified.**
+
+[![Read about open source licenses](http://www.opensource.org/graphics/osi-certified-120x100.png)](http://opensource.org/docs/definition.php)
