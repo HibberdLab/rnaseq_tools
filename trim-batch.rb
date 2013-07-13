@@ -36,6 +36,7 @@ EOS
   opt :windowsize, "Size of sliding window across which to average quality", :default => 4, :type => Integer
   opt :quality, "Quality cutoff to use in sliding window trimming", :default => 15, :type => Integer
   opt :minlen, "Minimum length of reads (any shorter than this after trimming are discarded)", :default => 60, :type => Integer
+  opt :cleanup, "Remove input files after they are processed"
 end
 
 t0 = Time.now
@@ -101,6 +102,10 @@ pairedlist.each_slice(2) do |infilef, infiler|
   puts "trimming #{infilef} and #{infiler}"
   puts cmd
   `#{cmd}`
+  if opts.cleanup
+    File.delete infilef
+    File.delete infiler
+  end
 end
 
 singlelist.each do |infile|
@@ -110,6 +115,7 @@ singlelist.each do |infile|
   puts "trimming #{infile}"
   puts cmd
   `#{cmd}`
+  File.delete infile if opts.cleanup
 end
 
 puts "Done! Trimmed #{pairedlist.length + singlelist.length} files in #{Time.now - t0} seconds"
