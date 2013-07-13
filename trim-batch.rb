@@ -38,7 +38,7 @@ EOS
   opt :minlen, "Minimum length of reads (any shorter than this after trimming are discarded)", :default => 60, :type => Integer
 end
 
-pairedlist, singlelist = []
+pairedlist, singlelist = [], []
 
 # check inputs
 if (opts.pairedfile && opts.paired) || (opts.singlefile && opts.single)
@@ -75,7 +75,7 @@ check_list(opts.paired, pairedlist) if opts.paired
 check_list(opts.single, singlelist) if opts.single
 
 # build command(s)
-pairedcmd, singlecmd = nil
+pairedcmd, singlecmd = nil, nil
 
 if opts.paired || opts.pairedfile
   pairedcmd = "java -jar #{opts.jar} PE -phred33 INFILEF INFILER OUTFILEF OUTFILER"
