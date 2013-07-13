@@ -30,7 +30,6 @@ EOS
   opt :singlefile, "A file of single-end FASTQ file paths, 1 per line", :type => String
   opt :single, "A list of colon separated single-end input FASTQ file paths", :type => String
   opt :jar, "Location of the trimmomatic jar file", :required => true, :type => String
-  opt :paired, "Input fastq files are paired reads"
   opt :adapters, "Path to adapter FASTA file. If provided, adapters will be trimmed"
   opt :leading, "Minimum quality required to keep a leading base", :default => 15, :type => Integer
   opt :trailing, "Minimum quality required to keep a trailing base", :default => 15, :type => Integer
