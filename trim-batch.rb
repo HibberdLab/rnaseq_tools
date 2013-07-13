@@ -12,6 +12,7 @@
 
 require 'rubygems'
 require 'trollop'
+require 'pp'
 
 TRIMPREFIX = 't.'
 UNPAIREDPREFIX = 'u.'
@@ -122,4 +123,9 @@ singlelist.each do |infile|
   File.delete infile if opts.cleanup
 end
 
+protfile = Time.now.strftime('%d_%m_%Y_%H_%M_%S.trim.protocol')
+puts "Saving protocol to #{protfile}"
+File.open(protfile) do |protocol|
+  protocol.pp opts
+end
 puts "Done! Trimmed #{pairedlist.length + singlelist.length} files in #{Time.now - t0} seconds"
