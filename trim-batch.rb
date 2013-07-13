@@ -14,6 +14,7 @@ require 'rubygems'
 require 'trollop'
 
 TRIMPREFIX = 't.'
+UNPAIREDPREFIX = 'u.'
 
 opts = Trollop::options do
   version "v0.0.1a"
@@ -22,6 +23,7 @@ trim-batch: run trimmomatic on multiple fastq files.
 
 Single-end and/or paired-end can be included.
 Trimmed files are outputted as '#{TRIMPREFIX}<input filename>'.
+Paired reads whose pair is discarded are outputted as '#{TRIMPREFIX}#{UNPAIREDPREFIX}<input filename>'.
 
 Make sure Trimmomatic is installed
 EOS
@@ -81,7 +83,7 @@ check_list(opts.single, singlelist) if opts.single
 pairedcmd, singlecmd = nil, nil
 
 if opts.paired || opts.pairedfile
-  pairedcmd = "java -jar #{opts.jar} PE -phred33 INFILEF INFILER OUTFILEF OUTFILER"
+  pairedcmd = "java -jar #{opts.jar} PE -phred33 INFILEF INFILER OUTFILEF OUTFILEFU OUTFILER OUTFILERU"
   pairedcmd += " ILLUMINACLIP:#{opts.adapters}:2:40:15" if opts.adapters
   pairedcmd += " LEADING:#{opts.leading} TRAILING:#{opts.trailing} SLIDINGWINDOW:#{opts.windowsize}:#{opts.quality} MINLEN:#{opts.minlen}"
 end
@@ -98,7 +100,9 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = cmd.gsub(/INFILEF/, infilef)
   cmd = cmd.gsub(/INFILER/, infiler)
   cmd = cmd.gsub(/OUTFILEF/, "#{TRIMPREFIX}#{infilef}")
+  cmd = cmd.gsub(/OUTFILEFU/, "#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infilef}")
   cmd = cmd.gsub(/OUTFILER/, "#{TRIMPREFIX}#{infiler}")
+  cmd = cmd.gsub(/OUTFILERU/, "#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infiler}")
   puts "trimming #{infilef} and #{infiler}"
   puts cmd
   `#{cmd}`
