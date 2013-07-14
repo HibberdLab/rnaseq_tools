@@ -1,4 +1,4 @@
-#!/usr/bin/env rubygems
+#!/usr/bin/env ruby
 
 #
 # khmer-batch
