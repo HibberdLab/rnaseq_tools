@@ -28,6 +28,8 @@ opts = Trollop::options do
   opt :memory, "Maximum amount of memory to be used by khmer in gigabytes", :default => 4.0, :type => :float
   opt :kmer, "K value to use in khmer", :default => 21, :type => :int
   opt :buckets, "Number of buckets", :default => 4, :type => :int
+  opt :cleanup, "Remove input files after they are processed"
+  opt :gzip, "gzip input and output files after they are processed"
 end
 
 filelist=[]
@@ -52,6 +54,9 @@ elsif opts.files
     end
   end
 end
+if (opts.cleanup && opts.gzip)
+  abort "--cleanup and --gzip are mutually exclusive - deleted files can't be gzipped!"
+end
 
 if (opts.interleave)
   newfilelist=[]
@@ -62,6 +67,12 @@ if (opts.interleave)
   (0..filelist.length-1).step(2) do |i|
     cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print(\"@read\"NR\":1\",$3,$5,$7,\"@read\"NR\":2\",$4,$6,$8)}\' > #{filelist[i]}.in"
     `#{cmd}`
+    if opts.cleanup
+      File.delete(filelist[i]) 
+      File.delete(filelist[i+1])
+    elsif opts.gzip
+      `gzip #{filelist[i]} #{filelist[i+1]}`
+    end
     newfilelist << "#{filelist[i]}.in"
   end
   filelist = newfilelist
@@ -94,5 +105,10 @@ filelist.each do |file|
     puts "running #{cmd}"
     puts `#{cmd}`
     `mv table2.kh table.kh`
+  end
+  if opts.cleanup
+    File.delete(file) 
+  elsif opts.gzip
+    `gzip #{file}`
   end
 end
