@@ -9,9 +9,9 @@
 # Make sure normalize-by-median.py is in your PATH or specify the location
 # with the --script option
 #
-# Chris Boursnell (cmb211@cam.ac.uk)
+# Chris Boursnell (cmb211@cam.ac.uk) && Richard Smith (rds45@cam.ac.uk)
 # created: 08/07/2013
-# last modified: 08/07/2013
+# last modified: 14/07/2013
 #
 
 require 'rubygems'
@@ -55,19 +55,19 @@ end
 
 if (opts.interleave)
   newfilelist=[]
-  #check there are an even number of files in the list
+  # check there are an even number of files in the list
   if filelist.length % 2 == 1
     abort "There needs to be an even number of fastq files in the list if you want to interleave them"
   end
   (0..filelist.length-1).step(2) do |i|
     cmd = "paste #{filelist[i]} #{filelist[i+1]} | paste - - - - | awk -v FS=\"\t\" -v OFS=\"\n\" \'{print(\"@read\"NR\":1\",$3,$5,$7,\"@read\"NR\":2\",$4,$6,$8)}\' > #{filelist[i]}.in"
-    #paste test_1.fq test_2.fq | paste - - - - | awk -v FS="\t" -v OFS="\n" '{print("@read"NR":1", $3, $5, $7, "@read"NR":2", $4, $6, $8)}'
     `#{cmd}`
     newfilelist << "#{filelist[i]}.in"
   end
   filelist = newfilelist
 end
 
+# build the command
 first = true
 if (opts.continue)
   first = false
@@ -79,17 +79,20 @@ x = (opts.memory/opts.buckets*1e9).to_i
 pair=""
 if (opts.paired)
   pair = "-p"
-  #puts "setting pair to true #{pair}"
 end
+
+# run
 filelist.each do |file|
-  puts file
+  puts "processing: #{file}"
   if first
     cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
-    `#{cmd}`
+    puts "running: #{cmd}"
+    puts `#{cmd}`
     first = false
   else
     cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --loadhash table.kh --savehash table2.kh #{file}"
-    `#{cmd}`
+    puts "running #{cmd}"
+    puts `#{cmd}`
     `mv table2.kh table.kh`
   end
 end
