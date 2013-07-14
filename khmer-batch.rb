@@ -54,9 +54,6 @@ elsif opts.files
     end
   end
 end
-if (opts.cleanup && opts.gzip)
-  abort "--cleanup and --gzip are mutually exclusive - deleted files can't be gzipped!"
-end
 
 if (opts.interleave)
   newfilelist=[]
