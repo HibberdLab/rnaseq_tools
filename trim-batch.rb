@@ -109,11 +109,12 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = cmd.gsub(/OUTFILER/, "#{TRIMPREFIX}#{infiler}")
   cmd = cmd.gsub(/OUTFILERU/, "#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infiler}")
   puts "trimming #{infilef} and #{infiler}"
-  ret = `#{cmd} &2>1`
+  ret = `#{cmd} 2>&1`
   ret.split('\n').each do |line|
     next unless line =~ /^Input/
-    data = /Input Read Pairs: (?<input_reads>\d+) Both Surviving: (?<both_kept>\d+) \((?<both_kept_pc>[^\)]+)\) Forward Only Surviving: (?<fwd_kept>\d+) \((?<fwd_kept_pc>[^\)]+)\) Reverse Only Surviving: (?<rev_kept>\d+) \((?<rev_kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/
-    paired_trimlog << data
+    data = /Input Read Pairs: (?<input_reads>\d+) Both Surviving: (?<both_kept>\d+) \((?<both_kept_pc>[^\)]+)\) Forward Only Surviving: (?<fwd_kept>\d+) \((?<fwd_kept_pc>[^\)]+)\) Reverse Only Surviving: (?<rev_kept>\d+) \((?<rev_kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/.match(line)
+    paired_trimlog << Hash[ data.names.zip( data.captures ) ]
+
     p data
   end
   if opts.cleanup
@@ -127,12 +128,14 @@ singlelist.each do |infile|
   cmd = cmd.gsub(/INFILE/, infile)
   cmd = cmd.gsub(/OUTFILE/, "#{TRIMPREFIX}#{infile}")
   puts "trimming #{infile}"
-  ret = `#{cmd} &2>1`
-  ret.split('\n').each do |line|
+  ret = `#{cmd} 2>&1`
+  p ret
+  ret.split(/\n/).each do |line|
+    p line
     next unless line =~ /^Input/
-    data = /Input Read Pairs: (?<input_reads>\d+) Surviving: (?<kept>\d+) \((?<kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/
-    unpaired_trimlog << data
-    p data
+    data = /Input Reads: (?<input_reads>\d+) Surviving: (?<kept>\d+) \((?<kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/.match(line)
+    unpaired_trimlog << Hash[ data.names.zip( data.captures ) ]
+    p unpaired_trimlog
   end
   File.delete infile if opts.cleanup
 end
@@ -144,5 +147,19 @@ File.open(protfile, 'w') do |protocol|
   protocol.puts opts
 end
 
-logfile = "#{datestr}.trim.csv"
+logsuffix = "#{datestr}.trim.csv"
+def writelog(logarr, logfile)
+  return if logarr.length == 0
+  header = logarr.first.keys
+  CSV.open(logfile, 'w') do |log|
+    log << header
+    logarr.each do |line|
+      log << header.map { |h| line[h] }
+    end
+  end
+end
+
+writelog(paired_trimlog, "paired.#{logsuffix}")
+writelog(unpaired_trimlog, "unpaired.#{logsuffix}")
+  
 puts "Done! Trimmed #{pairedlist.length + singlelist.length} files in #{Time.now - t0} seconds"
