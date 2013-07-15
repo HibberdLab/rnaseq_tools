@@ -109,11 +109,11 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = cmd.gsub(/OUTFILER/, "#{TRIMPREFIX}#{infiler}")
   cmd = cmd.gsub(/OUTFILERU/, "#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infiler}")
   puts "trimming #{infilef} and #{infiler}"
-  ret = `#{cmd} &2>1`
+  ret = `#{cmd} 2&>1`
   ret.split('\n').each do |line|
-    next unless line =~ /^Input/
+    next unless line =~ /Input/
     data = /Input Read Pairs: (?<input_reads>\d+) Both Surviving: (?<both_kept>\d+) \((?<both_kept_pc>[^\)]+)\) Forward Only Surviving: (?<fwd_kept>\d+) \((?<fwd_kept_pc>[^\)]+)\) Reverse Only Surviving: (?<rev_kept>\d+) \((?<rev_kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/
-    paired_trimlog << data
+    trimlog << data
     p data
   end
   if opts.cleanup
@@ -127,11 +127,11 @@ singlelist.each do |infile|
   cmd = cmd.gsub(/INFILE/, infile)
   cmd = cmd.gsub(/OUTFILE/, "#{TRIMPREFIX}#{infile}")
   puts "trimming #{infile}"
-  ret = `#{cmd} &2>1`
+  ret = `#{cmd} 2&>1`
   ret.split('\n').each do |line|
-    next unless line =~ /^Input/
-    data = /Input Read Pairs: (?<input_reads>\d+) Surviving: (?<kept>\d+) \((?<kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/
-    unpaired_trimlog << data
+    next unless line =~ /Input/
+    data = /Input Read Pairs: (?<input_reads>\d+) Both Surviving: (?<both_kept>\d+) \((?<both_kept_pc>[^\)]+)\) Forward Only Surviving: (?<fwd_kept>\d+) \((?<fwd_kept_pc>[^\)]+)\) Reverse Only Surviving: (?<rev_kept>\d+) \((?<rev_kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/
+    trimlog << data
     p data
   end
   File.delete infile if opts.cleanup
