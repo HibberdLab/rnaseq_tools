@@ -95,12 +95,10 @@ filelist.each do |file|
   if first
     cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
     puts "running: #{cmd}"
-    puts `#{cmd}`
     first = false
   else
     cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --loadhash table.kh --savehash table2.kh #{file}"
     puts "running #{cmd}"
-    puts `#{cmd}`
     `mv table2.kh table.kh`
   end
   if opts.cleanup
