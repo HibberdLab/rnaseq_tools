@@ -85,7 +85,7 @@ n = opts.buckets
 x = (opts.memory/opts.buckets*1e9).to_i
 
 pair=""
-if (opts.paired)
+if (opts.paired || opts.interleave)
   pair = "-p"
 end
 
