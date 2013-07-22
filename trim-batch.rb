@@ -114,7 +114,7 @@ pairedlist.each_slice(2) do |infilef, infiler|
     next unless line =~ /^Input/
     data = /Input Read Pairs: (?<input_reads>\d+) Both Surviving: (?<both_kept>\d+) \((?<both_kept_pc>[^\)]+)\) Forward Only Surviving: (?<fwd_kept>\d+) \((?<fwd_kept_pc>[^\)]+)\) Reverse Only Surviving: (?<rev_kept>\d+) \((?<rev_kept_pc>[^\)]+)\) Dropped: (?<dropped>\d+) \((?<dropped_pc>[^\)]+)\)/.match(line)
     logline = Hash[data.names.zip(data.captures)]
-    logline['file'] = infile
+    logline['file'] = infilef
     paired_trimlog << logline
   end
   if opts.cleanup
