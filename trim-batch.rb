@@ -69,8 +69,10 @@ check_list_file(opts.singlefile, singlelist) if opts.singlefile
 
 # check list and load if OK
 def check_list(inlist, outlist)
+  p inlist, outlist
   outlist += inlist.split(":")
-  outlist.map! { |file|  File.expand_path(file)}
+  p outlist
+  outlist.map! { |file|  File.expand_path(file) }
   outlist.each do |file|
     unless File.exists?(file)
       raise "Can't find file \"#{file}\""
@@ -80,6 +82,8 @@ end
 
 check_list(opts.paired, pairedlist) if opts.paired
 check_list(opts.single, singlelist) if opts.single
+
+p singlelist
 
 # build command(s)
 pairedcmd, singlecmd = nil, nil
@@ -104,10 +108,14 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = pairedcmd
   cmd = cmd.gsub(/INFILEF/, infilef)
   cmd = cmd.gsub(/INFILER/, infiler)
-  cmd = cmd.gsub(/OUTFILEF/, "#{TRIMPREFIX}#{infilef}")
-  cmd = cmd.gsub(/OUTFILEFU/, "#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infilef}")
-  cmd = cmd.gsub(/OUTFILER/, "#{TRIMPREFIX}#{infiler}")
-  cmd = cmd.gsub(/OUTFILERU/, "#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infiler}")
+  inpathl = File.dirname(infilef)
+  infilel = File.basename(infilef)
+  inpathr = File.dirname(infiler)
+  infiler = File.basename(infiler)
+  cmd = cmd.gsub(/OUTFILEF/, "#{inpathf}/#{TRIMPREFIX}#{infilef}")
+  cmd = cmd.gsub(/OUTFILEFU/, "#{inpathf}/#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infilef}")
+  cmd = cmd.gsub(/OUTFILER/, "#{inpathr}/#{TRIMPREFIX}#{infiler}")
+  cmd = cmd.gsub(/OUTFILERU/, "#{inpathr}/#{TRIMPREFIX}#{UNPAIREDPREFIX}#{infiler}")
   puts "trimming #{infilef} and #{infiler}"
   ret = `#{cmd} 2>&1`
   ret.split('\n').each do |line|
@@ -126,7 +134,9 @@ end
 singlelist.each do |infile|
   cmd = singlecmd
   cmd = cmd.gsub(/INFILE/, infile)
-  cmd = cmd.gsub(/OUTFILE/, "#{TRIMPREFIX}#{infile}")
+  inpath = File.dirname(infile)
+  infile = File.basename(infile)
+  cmd = cmd.gsub(/OUTFILE/, "#{inpath}/#{TRIMPREFIX}#{infile}")
   puts "trimming #{infile}"
   ret = `#{cmd} 2>&1`
   p ret
