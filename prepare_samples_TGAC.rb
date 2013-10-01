@@ -36,7 +36,7 @@ Dir.chdir(datadir) do
     samplefile = "#{sampleid}.fastq.gz"
     puts "collating #{libid} files into #{samplefile}"
     Dir.chdir(sample) do
-      `zcat *.fastq.gz | gzip > #{samplefile}`
+      `zcat *.fastq.gz | gzip > #{samplefile}` unless File.exist?(samplefile)
       files << File.join(Dir.pwd, samplefile)
     end
   end
@@ -44,5 +44,5 @@ end
 
 listfile = "files_for_trimming.txt"
 puts "writing file list for trimming to #{listfile}"
-File.open(listfile){ |f| files.each{ |e| f.puts e } }
+File.open(listfile, "w"){ |f| files.each{ |e| f.puts e } }
 puts "done"
