@@ -108,8 +108,8 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = pairedcmd
   cmd = cmd.gsub(/INFILEF/, infilef)
   cmd = cmd.gsub(/INFILER/, infiler)
-  inpathl = File.dirname(infilef)
-  infilel = File.basename(infilef)
+  inpathf = File.dirname(infilef)
+  infilef = File.basename(infilef)
   inpathr = File.dirname(infiler)
   infiler = File.basename(infiler)
   cmd = cmd.gsub(/OUTFILEF/, "#{inpathf}/#{TRIMPREFIX}#{infilef}")
@@ -148,7 +148,7 @@ singlelist.each do |infile|
     logline['file'] = infile
     unpaired_trimlog << logline
   end
-  File.delete infile if opts.cleanup
+  # File.delete infile if opts.cleanup
 end
 
 datestr = Time.now.strftime('%d_%m_%Y_%H_%M_%S')
