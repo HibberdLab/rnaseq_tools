@@ -22,6 +22,12 @@ end
 Trollop::die :genome, "must exist" if !File.exist?(opts[:genome]) if opts[:genome]
 Trollop::die :annotation, "must exist" if !File.exist?(opts[:annotation]) if opts[:annotation]
 
+class String
+  def revcomp
+    self.tr("ACGT", "TGCA").reverse
+  end
+end
+
 class Gff
   attr_accessor :chromosome, :type, :start, :stop, :id, :strand
 
@@ -33,8 +39,8 @@ class Gff
     end
     @chromosome = a[0]
     @type = a[2]
-    @start = a[3]
-    @stop = a[4]
+    @start = a[3].to_i
+    @stop = a[4].to_i
     @id = name
     @strand = a[6]
   end
@@ -44,16 +50,53 @@ class Gff
   end
 end
 
-genome = Bio::FastaFormat.open(opt.genome)
+genome_hash = Hash.new
+count=0
+genome = Bio::FastaFormat.open(opts.genome)
+genome.each do |entry|
+  genome_hash[entry.entry_id] = entry.seq
+end
 
 hash = Hash.new
 
-File.open("#{opt.annotation}", "r").each_line do |line|
+File.open("#{opts.annotation}", "r").each_line do |line|
   line.chomp!
-  g = Gff.new(line)
-  if !hash.has_key?(g.id)
-    hash[g.id]=[]
+  if line !~ /mRNA/
+    g = Gff.new(line)
+    if !hash.has_key?(g.id)
+      hash[g.id]=[]
+    end
+    hash[g.id] << g
   end
-  hash[g.id] << g
 end
 
+hash.each_pair do |id, list|
+  if list[0].strand == "+"
+    list.sort! { |x,y| x.start <=> y.start }
+    seq=""
+    if genome_hash.has_key?(list[0].chromosome)
+      list.each do |i|
+        s = genome_hash[i.chromosome]
+        # puts "substring #{i.start} to #{i.stop} of string length #{s.length}"
+        seq << s[i.start..i.stop]
+      end
+    else
+      abort "oh dear I appear to have a problem finding #{list[0].chromosome}"
+    end
+    puts ">#{list[0].id}"
+    puts seq
+  else # strand == "-"
+    list.sort! { |x,y| y.stop <=> x.stop }
+    seq=""
+    if genome_hash.has_key?(list[0].chromosome)
+      list.each do |i|
+        s = genome_hash[i.chromosome]
+        seq << s[i.start..i.stop]
+      end
+    else
+      abort "oh dear I appear to have a problem finding #{list[0].chromosome}"
+    end
+    puts ">#{list[0].id}"
+    puts seq.revcomp
+  end
+end
