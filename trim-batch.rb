@@ -69,9 +69,9 @@ check_list_file(opts.singlefile, singlelist) if opts.singlefile
 
 # check list and load if OK
 def check_list(inlist, outlist)
-  p inlist, outlist
-  outlist += inlist.split(":")
-  p outlist
+  inlist.split(":").each do |f|
+    outlist << f
+  end
   outlist.map! { |file|  File.expand_path(file) }
   outlist.each do |file|
     unless File.exists?(file)
@@ -82,8 +82,6 @@ end
 
 check_list(opts.paired, pairedlist) if opts.paired
 check_list(opts.single, singlelist) if opts.single
-
-p singlelist
 
 # build command(s)
 pairedcmd, singlecmd = nil, nil
@@ -108,8 +106,8 @@ pairedlist.each_slice(2) do |infilef, infiler|
   cmd = pairedcmd
   cmd = cmd.gsub(/INFILEF/, infilef)
   cmd = cmd.gsub(/INFILER/, infiler)
-  inpathl = File.dirname(infilef)
-  infilel = File.basename(infilef)
+  inpathf = File.dirname(infilef)
+  infilef = File.basename(infilef)
   inpathr = File.dirname(infiler)
   infiler = File.basename(infiler)
   cmd = cmd.gsub(/OUTFILEF/, "#{inpathf}/#{TRIMPREFIX}#{infilef}")
