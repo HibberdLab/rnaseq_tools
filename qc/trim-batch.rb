@@ -52,8 +52,6 @@ if (opts.pairedfile && opts.paired) || (opts.singlefile && opts.single)
   abort "Choose either file or list input but not both"
 end
 
-p opts.paired
-
 # check list file and load if OK
 def check_list_file(file, outlist)
   unless File.exists?(file)
@@ -82,7 +80,6 @@ end
 
 check_list(opts.paired, pairedlist) if opts.paired
 check_list(opts.single, singlelist) if opts.single
-p pairedlist
 
 # build command(s)
 pairedcmd, singlecmd = nil, nil
