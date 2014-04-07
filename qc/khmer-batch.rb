@@ -30,6 +30,7 @@ opts = Trollop::options do
   opt :buckets, "Number of buckets", :default => 4, :type => :int
   opt :cleanup, "Remove input files after they are processed"
   opt :gzip, "gzip input and output files after they are processed"
+  opt :coverage, "kmer coverage cutoff", :default => 20
 end
 
 filelist=[]
@@ -93,12 +94,14 @@ end
 filelist.each do |file|
   puts "processing: #{file}"
   if first
-    cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --savehash table.kh #{file}"
+    cmd =
+      "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} -C #{opts.coverage} --savetable table.kh #{file}"
     puts "running: #{cmd}"
     puts `#{cmd}`
     first = false
   else
-    cmd = "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} --loadhash table.kh --savehash table2.kh #{file}"
+    cmd =
+      "#{opts.script} #{pair} -k #{opts.kmer} -N #{n} -x #{x} -C #{opts.coverage} --loadtable table.kh --savetable table2.kh #{file}"
     puts "running #{cmd}"
     puts `#{cmd}`
     `mv table2.kh table.kh`

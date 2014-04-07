@@ -25,7 +25,7 @@ else
   raise "couldn't find the file SampleFiles.txt - did you run the script from the TGAC data dir?"
 end
 
-datadir = Dir['Project*'].first
+datadir = Dir['*'].delete_if{ |x| !File.directory?(x) }.first
 files = []
 Dir.chdir(datadir) do
   Dir['Sample*'].each do |sample|
